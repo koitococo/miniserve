@@ -3,6 +3,7 @@ use std::net::{IpAddr, SocketAddr, TcpListener};
 use std::thread;
 use std::time::Duration;
 
+use actix_cors::Cors;
 use actix_files::NamedFile;
 use actix_web::{
     dev::{fn_service, ServiceRequest, ServiceResponse},
@@ -197,7 +198,48 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
     );
 
     let srv = actix_web::HttpServer::new(move || {
+        let mut cors = Cors::default();
+        if miniserve_config.allow_cors {
+            if let Some(cors_allow_origin) = miniserve_config.cors_allow_origin.clone() {
+                cors = cors.allowed_origin(&cors_allow_origin);
+            } else {
+                cors = cors.allow_any_origin();
+            }
+            if miniserve_config.cors_allow_methods.len() > 0 {
+                cors = cors.allowed_methods(miniserve_config.cors_allow_methods.iter().filter_map(|m| {
+                    match m.as_str() {
+                        "GET" => Some(actix_web::http::Method::GET),
+                        "POST" => Some(actix_web::http::Method::POST),
+                        "PUT" => Some(actix_web::http::Method::PUT),
+                        "DELETE" => Some(actix_web::http::Method::DELETE),
+                        "PATCH" => Some(actix_web::http::Method::PATCH),
+                        "OPTIONS" => Some(actix_web::http::Method::OPTIONS),
+                        "HEAD" => Some(actix_web::http::Method::HEAD),
+                        "CONNECT" => Some(actix_web::http::Method::CONNECT),
+                        "TRACE" => Some(actix_web::http::Method::TRACE),
+                        _ => None,
+                    }
+                }));
+            } else {
+                cors = cors.allow_any_method();
+            }
+            if miniserve_config.cors_allow_headers.len() > 0 {
+                for header in &miniserve_config.cors_allow_headers {
+                    cors = cors.allowed_header(header);
+                }
+            } else {
+                cors = cors.allow_any_header();
+            }
+            if miniserve_config.cors_allow_credentials {
+                cors = cors.supports_credentials();
+            }
+        } else {
+            cors = cors.disable_preflight();
+            cors = cors.disable_vary_header();
+        }
+
         App::new()
+            .wrap(cors)
             .wrap(configure_header(&inside_config.clone()))
             .app_data(inside_config.clone())
             .app_data(stylesheet.clone())

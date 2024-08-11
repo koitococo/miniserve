@@ -155,6 +155,22 @@ pub struct MiniserveConfig {
 
     #[cfg(not(feature = "tls"))]
     pub tls_rustls_config: Option<()>,
+
+    /// If enabled, Cors Middleware is enabled
+    pub allow_cors: bool,
+
+    /// If specified, only allow requests from this origin
+    pub cors_allow_origin: Option<String>,
+
+    /// If specified, only allow requests with these methods
+    pub cors_allow_methods: Vec<String>,
+
+    /// If specified, only allow requests with these headers
+    pub cors_allow_headers: Vec<String>,
+
+    /// If specified, only allow requests with these headers
+    pub cors_allow_credentials: bool,
+
 }
 
 impl MiniserveConfig {
@@ -308,6 +324,11 @@ impl MiniserveConfig {
             disable_indexing: args.disable_indexing,
             tls_rustls_config: tls_rustls_server_config,
             compress_response: args.compress_response,
+            allow_cors: args.allow_cors,
+            cors_allow_origin: args.cors_allow_origin,
+            cors_allow_methods: args.cors_allow_methods,
+            cors_allow_headers: args.cors_allow_headers,
+            cors_allow_credentials: args.cors_allow_credentials,
         })
     }
 }
