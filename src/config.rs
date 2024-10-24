@@ -171,6 +171,8 @@ pub struct MiniserveConfig {
     /// If specified, only allow requests with these headers
     pub cors_allow_credentials: bool,
 
+    /// If sepecified, the content-type header will be overriden
+    pub mime_override: Option<String>,
 }
 
 impl MiniserveConfig {
@@ -329,6 +331,7 @@ impl MiniserveConfig {
             cors_allow_methods: args.cors_allow_methods,
             cors_allow_headers: args.cors_allow_headers,
             cors_allow_credentials: args.cors_allow_credentials,
+            mime_override: args.mime_override,
         })
     }
 }

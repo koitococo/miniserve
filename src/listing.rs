@@ -1,6 +1,7 @@
 #![allow(clippy::format_push_string)]
 use std::io;
 use std::path::{Component, Path};
+use std::str::FromStr;
 use std::time::SystemTime;
 
 use actix_web::{
@@ -158,8 +159,28 @@ impl Breadcrumb {
 }
 
 pub async fn file_handler(req: HttpRequest) -> actix_web::Result<actix_files::NamedFile> {
-    let path = &req.app_data::<crate::MiniserveConfig>().unwrap().path;
-    actix_files::NamedFile::open(path).map_err(Into::into)
+    let config = req.app_data::<crate::MiniserveConfig>().unwrap();
+    let path = &config.path;
+    let file = actix_files::NamedFile::open(path);
+    match file {
+        Ok(f) => {
+            let file_response = if let Some(mime_override) = config.mime_override.clone() {
+                log::info!("Overriding MIME type to: {:?}", mime_override);
+                f.set_content_type(
+                    mime::Mime::from_str(mime_override.as_str()).unwrap(),
+                )
+            } else {
+                f.set_content_type(actix_files::file_extension_to_mime(
+                    path.extension().unwrap().to_str().unwrap(),
+                ))
+            };
+            Ok(file_response)
+        }
+        Err(e) => {
+            log::error!("Error opening file: {:?}", e);
+            Err(actix_web::error::ErrorNotFound("File not found"))
+        }
+    }
 }
 
 /// List a directory and renders a HTML file accordingly

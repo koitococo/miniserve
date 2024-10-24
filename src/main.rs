@@ -15,7 +15,7 @@ use anyhow::Result;
 use clap::{crate_version, CommandFactory, Parser};
 use colored::*;
 use fast_qr::QRBuilder;
-use log::{error, warn};
+use log::{error, info, warn};
 
 mod archive;
 mod args;
@@ -205,8 +205,8 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
                 cors = cors.allow_any_origin();
             }
             if miniserve_config.cors_allow_methods.len() > 0 {
-                cors = cors.allowed_methods(miniserve_config.cors_allow_methods.iter().filter_map(|m| {
-                    match m.as_str() {
+                cors = cors.allowed_methods(miniserve_config.cors_allow_methods.iter().filter_map(
+                    |m| match m.as_str() {
                         "GET" => Some(actix_web::http::Method::GET),
                         "POST" => Some(actix_web::http::Method::POST),
                         "PUT" => Some(actix_web::http::Method::PUT),
@@ -217,8 +217,8 @@ async fn run(miniserve_config: MiniserveConfig) -> Result<(), StartupError> {
                         "CONNECT" => Some(actix_web::http::Method::CONNECT),
                         "TRACE" => Some(actix_web::http::Method::TRACE),
                         _ => None,
-                    }
-                }));
+                    },
+                ));
             } else {
                 cors = cors.allow_any_method();
             }
@@ -338,9 +338,17 @@ fn create_tcp_listener(addr: SocketAddr) -> io::Result<TcpListener> {
 }
 
 fn configure_header(conf: &MiniserveConfig) -> middleware::DefaultHeaders {
+    info!("Adding default headers");
     conf.header.iter().flatten().fold(
         middleware::DefaultHeaders::new(),
-        |headers, (header_name, header_value)| headers.add((header_name, header_value)),
+        |headers, (header_name, header_value)| {
+            info!(
+                "Adding default header: {} -> {}",
+                header_name,
+                header_value.to_str().unwrap()
+            );
+            headers.add((header_name, header_value))
+        },
     )
 }
 

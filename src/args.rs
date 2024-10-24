@@ -311,34 +311,44 @@ pub struct CliArgs {
     pub disable_indexing: bool,
 
     /// Allow Cross Origin Resource Sharing (CORS)
-    /// 
+    ///
     /// This will send CORS headers to allow requests from any origin. (Disabled by default)
-    #[arg(long, env="MINISERVE_ALLOW_CORS", default_value_t = false)]
+    #[arg(long, env = "MINISERVE_ALLOW_CORS", default_value_t = false)]
     pub allow_cors: bool,
 
     /// Allowed CORS origins
-    /// 
+    ///
     /// This will override Access-Control-Allow-Origin header.
     #[arg(long, env = "MINISERVE_CORS_ALLOW_ORIGIN")]
     pub cors_allow_origin: Option<String>,
 
     /// Allowed CORS methods
-    /// 
+    ///
     /// This will override Access-Control-Allow-Methods header.
     #[arg(long, env = "MINISERVE_CORS_ALLOW_METHODS")]
     pub cors_allow_methods: Vec<String>,
 
     /// Allowed CORS headers
-    /// 
+    ///
     /// This will override Access-Control-Allow-Headers header.
     #[arg(long, env = "MINISERVE_CORS_ALLOW_HEADERS")]
     pub cors_allow_headers: Vec<String>,
 
     /// Allow CORS credentials
-    /// 
+    ///
     /// This will override Access-Control-Allow-Credentials header.
-    #[arg(long, env = "MINISERVE_CORS_ALLOW_CREDENTIALS", default_value_t = false)]
+    #[arg(
+        long,
+        env = "MINISERVE_CORS_ALLOW_CREDENTIALS",
+        default_value_t = false
+    )]
     pub cors_allow_credentials: bool,
+
+    /// Force override MIME type for files
+    ///
+    /// This will override Access-Control-Allow-Credentials header.
+    #[arg(short = 'T', long, env = "MINISERVE_MIME_OVERRIDE")]
+    pub mime_override: Option<String>,
 }
 
 /// Checks whether an interface is valid, i.e. it can be parsed into an IP address
